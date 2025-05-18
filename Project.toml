@@ -1,0 +1,16 @@
+name = "BittideTools"
+uuid = "85b144e0-61cd-438c-96cd-1dba1e5a087d"
+authors = ["Sanjay Lall <sanjaylall@google.com>"]
+version = "0.1.0"
+
+#
+# The intention here is that this code doesn't force the user
+# into using a particular version of Callisto or Elara
+#
+[deps]
+Topology = "52998691-69e7-4a84-99f6-e58d9ccf8a6d"
+Piecewise = "f155f5a3-add7-4ef4-a5de-701ac9c64b07"
+StateSystems = "23c40dd2-0d34-4c38-b89d-e68691bb192b"
+LogData = "dc9b759f-4b6f-4c6b-8af8-223bef96c6ca"
+
+
