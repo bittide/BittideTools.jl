@@ -12,5 +12,6 @@ Topology = "52998691-69e7-4a84-99f6-e58d9ccf8a6d"
 Piecewise = "f155f5a3-add7-4ef4-a5de-701ac9c64b07"
 StateSystems = "23c40dd2-0d34-4c38-b89d-e68691bb192b"
 LogData = "dc9b759f-4b6f-4c6b-8af8-223bef96c6ca"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 

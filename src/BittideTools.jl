@@ -1,6 +1,9 @@
 
 module BittideTools
 
+#
+# This is a dependency of Callisto.
+#
 
 include("bittidestatesystems.jl")
 using .BittideStateSystems

@@ -1,7 +1,7 @@
 
 module BittideStateSystems
 
-# Does not depend on Callisto.
+# This is a dependency of Callisto, it does not depend on Callisto.
 
 
 export OneEdgeOutputSystem
