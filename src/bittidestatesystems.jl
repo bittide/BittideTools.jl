@@ -4,13 +4,13 @@ module BittideStateSystems
 # This is a dependency of Callisto, it does not depend on Callisto.
 
 
-export OneEdgeOutputSystem
+export OneEdgeOutputSystem, OutputSystem, Measurement, make_controller
 
 using Topology
-using StateSystems
+import StateSystems: StateSystems, PIStateSystem, StateSystem, compose, next
 
 mutable struct OneEdgeOutputSystem <: StateSystems.StateSystem
-    portnum::Int64  
+    portnum::Int64
     offset::Float64
     # This inner constructor only accepts arguments
     # of the specified types, so we can have an outer constructor
@@ -43,6 +43,55 @@ be used as the controller at the destination node of the edge.
 """
 OneEdgeOutputSystem(edgeid, c) = OneEdgeOutputSystem(c.graph, c.links[edgeid].offset, edgeid)
 
+
+########################################################################
+# controller measurement
+
+
+# IOM = instant of measurement
+# IOFC = instant of frequency change
+
+##############################################################################
+# We use this object to preallocate storage for the measured occupancies
+
+mutable struct Measurement
+    occupancies::Vector{Float64} # indexed by port number
+    theta_at_iofc::Float64
+    physical_time_at_iom::Float64
+    incoming_link_status::Vector{Int64}
+end
+
+"""
+    Measurement(x)
+
+Constructs a measurement object with occupancies defined by x.
+Sets the initial link statuses to up.
+"""
+Measurement(x) = Measurement(x, 0, 0, ones(Int64, length(x)))
+
+# This is a static system that converts the list
+# of buffer occupancies into the required scalar for a P or PI controller
+mutable struct OutputSystem <: StateSystem
+    local_offsets::Vector{Float64}
+end
+
+StateSystems.next(K::OutputSystem, measurement) = sum(measurement.incoming_link_status .* (measurement.occupancies - K.local_offsets))
+OutputSystem(i, c) = OutputSystem(make_local_offsets(i, c))
+make_controller(i, c) = make_controller(i, c.graph, c.kp, c.ki, c.poll_period, c.base_freq, make_local_offsets(i, c))
+
+function make_controller(i, graph, kp, ki, poll_period, base_freq, local_offsets)
+    K1 = PIStateSystem(kp, ki * poll_period / base_freq)
+    K2 = OutputSystem(local_offsets)
+    return compose(K1, K2)
+end
+
+# don't scale offsets by gears. instead
+# let the user deal with that.
+function make_local_offsets(i, c)
+    offset = [c.links[e].offset for e = 1:c.graph.m]
+    local_offset = inport_indexed_from_edge_indexed(c.graph, offset, i)
+    return local_offset
+end
 
 
 
