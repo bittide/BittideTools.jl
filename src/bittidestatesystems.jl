@@ -4,7 +4,7 @@ module BittideStateSystems
 # This is a dependency of Callisto, it does not depend on Callisto.
 
 
-export OneEdgeOutputSystem, OutputSystem, Measurement, make_controller
+export OneEdgeOutputSystem, OutputSystem, Measurement, make_controller, make_local_offsets
 
 using Topology
 import StateSystems: StateSystems, PIStateSystem, StateSystem, compose, next
