@@ -16,8 +16,11 @@ module CallistoCommon
 
 import Topology
 using Random
+using JuliaTools
+using Piecewise
 
-export CalOpts, make_frequencies
+export CalOpts, Checker, check_freq_is_positive, make_frequencies, initial_error, errorat, Error,
+       local_to_realtime, realtime_to_local, sim_is_done
 
 
 """
@@ -74,6 +77,83 @@ function make_frequencies(seed, num_nodes)
     f = 1 .+  rand(rng, 1:10^5, num_nodes) *  1e-9
     return f
 end
+
+################################################################################
+
+struct Checker end
+
+@inline check_freq_is_positive(ch::Nothing, c, errors, i, s) = return
+
+function check_freq_is_positive(ch::Checker, c, errors, i, s)
+    if c + errorat(errors[i], s) <= 0
+        println("Frequency at node $i has become negative: omega = ", c + errors[i](s))
+        println("time s = ", s)
+    end
+end
+
+
+sim_is_done(stopper::Nothing, errors, i, p, c, s) = false
+
+################################################################################
+# errors
+
+
+abstract type Error end
+
+struct PwlError <: Error
+    pwl::PiecewiseLinear
+end
+
+initial_error(e::Error) = e(0)
+initial_error(e::Number) = e
+initial_error(e::Vector{T}) where {T <: Error} = e(0)
+initial_error(e::Vector{Float64}) = e
+errorat(e::Number, t) = e
+errorat(e::Vector{T}, t) where {T <: Number}  = e
+Error(x::Number) = x
+Error(p::PiecewiseLinear) = PwlError(p)
+(e::PwlError)(t) = e.pwl(t)
+(e::Vector{T})(t) where {T <: Error} = [a(t) for a in e]
+
+
+
+
+"""
+    local_to_realtime(e, p, c, s, wmin) -> Float64
+
+Convert a local time interval `p` (in local clock ticks) to its equivalent duration `ds`
+in wall-clock time.
+
+This function solves the integral equation for ds
+
+    int_s^{s+ds} (c + e(t)) dt = p
+
+where `e(t)` is the clock frequency error at time `t` and `c` is a
+constant frequency correction, and `s` is the starting wall-clock time.
+
+# Arguments
+- `e`: The clock error model. Can be a `Number` (for constant error) or a `PwlError`
+       (for piecewise linear error).
+- `p::Real`: The local time interval (duration in local ticks) to convert.
+- `c::Real`: The constant frequency correction applied to the clock.
+- `s::Real`: The starting wall-clock time.
+- `wmin::Real`: A minimum effective frequency, used as a lower bound to prevent
+                division by zero or excessively large `ds` calculations
+
+# Returns
+- `Float64`: The duration `ds` in wall-clock time.
+"""
+function local_to_realtime(e::PwlError, p, c, s, wmin)
+    intfreq(s1, s2, c) = definite_integral(c + e.pwl, s1, s2)
+    dt = bisection(s2 -> intfreq(s, s2, c) - p,  s, s + p/wmin) - s
+    return dt
+end
+local_to_realtime(e::Number, p, c, s, wmin) = p / (c + e)
+
+# convert a duration ds in localticks to a duration in wallclock
+realtime_to_local(e::Number, c, ds) = ds * (c + e)
+
+
 
 
 
