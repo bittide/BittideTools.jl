@@ -65,6 +65,8 @@ Base.@kwdef mutable struct CalOpts
     v = nothing
 end
 
+# convenience
+CalOpts(graph::Topology.Graph; kw...) = CalOpts(;graph, kw...)
 
 
 function make_frequencies(seed, num_nodes)
