@@ -19,7 +19,7 @@ using Random
 using JuliaTools
 using Piecewise
 
-export CalOpts, Checker, check_freq_is_positive, make_frequencies, initial_error, errorat, Error,
+export CalOpts, Checker, check_freq_is_positive, get_frequencies, make_frequencies, initial_error, errorat, Error,
        local_to_realtime, realtime_to_local, sim_is_done
 
 
@@ -52,13 +52,13 @@ Holds configuration options for a Callisto simulation.
 """
 Base.@kwdef mutable struct CalOpts
     graph = Topology.Graph(["triangle"]; bidirectional = true)
-    latency =20
-    offset = 200
-    tmax = 1.5e5
-    kp = 8e-6
-    ki = 0.0
-    poll_period = 2000
-    theta0 = 0.0
+    latency = 5000
+    offset = 50
+    tmax = 1e9
+    kp = 2e-8
+    ki = 1e-15
+    poll_period = 100000
+    theta0 = 0.1
     errors = :random
     base_freq = 1.0
     stopper = nothing
@@ -67,6 +67,14 @@ Base.@kwdef mutable struct CalOpts
     controller = :pi
     v = nothing
 end
+# CalOpts should be such that at any time before running callisto,
+# you can change any of the entries of CalOpts. That is, the constructor
+# should not enforce constraints between the fields. That is why
+# we do not instantiate the errors with a random vector of length
+# n, since if subsequently the graph is changed then the struct
+# would become inconsistent.
+
+
 
 # convenience
 CalOpts(graph::Topology.Graph; kw...) = CalOpts(;graph, kw...)
@@ -77,6 +85,14 @@ function make_frequencies(seed, num_nodes)
     f = 1 .+  rand(rng, 1:10^5, num_nodes) *  1e-9
     return f
 end
+
+function get_frequencies(c::CalOpts)
+    if c.errors == :random
+        return make_frequencies(1, c.graph.n)
+    end
+    return c.errors
+end
+
 
 ################################################################################
 
@@ -109,6 +125,8 @@ initial_error(e::Number) = e
 initial_error(e::Vector{T}) where {T <: Error} = e(0)
 initial_error(e::Vector{Float64}) = e
 errorat(e::Number, t) = e
+errorat(e::PwlError, t) = e.pwl(t)
+errorat(e::Vector{T}, t) where {T <: Error}  =  [a(t) for a in e]
 errorat(e::Vector{T}, t) where {T <: Number}  = e
 Error(x::Number) = x
 Error(p::PiecewiseLinear) = PwlError(p)
