@@ -19,11 +19,11 @@ using Random
 using JuliaTools
 using Piecewise
 
-export CalOpts, Checker, check_freq_is_positive, get_constant_ugn,
-    get_frequencies, get_latency, get_offset,
-    make_frequencies, initial_error, errorat, Error,
-    local_to_realtime, realtime_to_local, sim_is_done
-
+export CalOpts, check_freq_is_positive, Checker, Error, errorat,
+    get_beta_constant_ugn, get_constant_ugn, get_frequencies,
+    get_latency, get_offset, initial_error,
+    local_to_realtime, make_frequencies,
+    realtime_to_local, sim_is_done
 
 """
     CalOpts structure
@@ -104,6 +104,18 @@ function get_offset(c::CalOpts)
     offset = [ati(c.offset, e) for e=1:c.graph.m]
     return offset
 end
+
+beta_internal(ugn, src, dst, latency, gear, t, theta) = ugn + floor(gear*theta[src](t - latency)) - floor(gear*theta[dst](t))
+
+function get_beta_constant_ugn(c, e, t, theta)
+    src = c.graph.edges[e].src
+    dst = c.graph.edges[e].dst
+    beta0 = get_offset(c)
+    ugn = get_constant_ugn(c, beta0, errors)
+    latency = get_latency(c)
+    return beta_internal(ugn[e], src, dst, latency[e], 1, t, theta)
+end
+
 
 function mkugn_internal(beta0, gear, latency, theta0_at_src,  wm2_at_src, theta0_at_dst)
     return beta0 - floor(gear*(theta0_at_src - latency * wm2_at_src)) + floor(gear*theta0_at_dst)
