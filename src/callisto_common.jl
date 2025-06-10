@@ -19,8 +19,10 @@ using Random
 using JuliaTools
 using Piecewise
 
-export CalOpts, Checker, check_freq_is_positive, get_frequencies, make_frequencies, initial_error, errorat, Error,
-       local_to_realtime, realtime_to_local, sim_is_done
+export CalOpts, Checker, check_freq_is_positive, get_constant_ugn,
+    get_frequencies, get_latency, get_offset,
+    make_frequencies, initial_error, errorat, Error,
+    local_to_realtime, realtime_to_local, sim_is_done
 
 
 """
@@ -92,6 +94,50 @@ function get_frequencies(c::CalOpts)
     end
     return c.errors
 end
+
+function get_latency(c::CalOpts)
+    latency = [ati(c.latency, e) for e=1:c.graph.m]
+    return latency
+end
+
+function get_offset(c::CalOpts)
+    offset = [ati(c.offset, e) for e=1:c.graph.m]
+    return offset
+end
+
+function mkugn_internal(beta0, gear, latency, theta0_at_src,  wm2_at_src, theta0_at_dst)
+    return beta0 - floor(gear*(theta0_at_src - latency * wm2_at_src)) + floor(gear*theta0_at_dst)
+end
+
+# only works for Callisto v1 style UGNs
+# which are constant over time.
+#
+# Since this may be called by other code (e.g. CallistoLinear)
+# which does not have gears, we make the gears
+# an option.
+function get_constant_ugn(c::CalOpts, beta0, errors; gears = 1)
+    m = c.graph.m
+    n = c.graph.n
+    theta0 = [ati(c.theta0, i) for i = 1:n]
+    gears = [ati(gears, e) for e=1:m]
+    beta0 = [ati(beta0, e) for e=1:m]
+    latencies = [ati(c.latency, e) for e = 1:m]
+    wm2 = [initial_error(errors[i]) for i=1:n]
+    ugn = [mkugn_internal(
+        beta0[e],
+        gears[e],
+        latencies[e],
+        theta0[c.graph.edges[e].src],
+        wm2[c.graph.edges[e].src],
+        theta0[c.graph.edges[e].dst]) for e=1:m]
+    return ugn
+end
+
+
+
+
+
+
 
 
 ################################################################################

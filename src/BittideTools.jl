@@ -19,14 +19,15 @@ module BittideTools
 # This is a dependency of Callisto.
 #
 
+include("callisto_common.jl")
+using .CallistoCommon
+
 include("bittidestatesystems.jl")
 using .BittideStateSystems
 
 include("bittidematrices.jl")
 using .BittideMatrices
 
-include("callisto_common.jl")
-using .CallistoCommon
 
 function reexport(m)
     for a in names(m)
