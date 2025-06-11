@@ -83,34 +83,13 @@ mutable struct OutputSystem <: StateSystem
     local_offsets::Vector{Float64}
 end
 
-
 StateSystems.next(K::OutputSystem, measurement) = sum(measurement.incoming_link_status .* (measurement.occupancies - K.local_offsets))
-
-function make_output_system(i, offset, graph)
-    local_offsets = inport_indexed_from_edge_indexed(graph, offset, i)
-    return OutputSystem(local_offsets)
-end
 
 function composed_controller(i, graph, kp, ki, poll_period, base_freq, output_system)
     K1 = PIStateSystem(kp, ki * poll_period / base_freq)
     K2 = output_system
     return compose(K1, K2)
 end
-
-# # don't scale offsets by gears. instead
-# # let the user deal with that.
-# function make_local_offsets(i, c)
-#     #offset = [c.model.links[e].offset for e = 1:c.graph.m]
-#     offset = [ati(c.offset, e) for e = 1:c.graph.m]
-#     local_offset = inport_indexed_from_edge_indexed(c.graph, offset, i)
-#     return local_offset
-# end
-
-
-# c.computed.output_systems[i] = OutputSystem(make_local_offsets(i, c))
-# default_controller(i, c) = default_controller(i, c.graph, c.kp, c.ki, c.poll_period, c.base_freq, make_local_offsets(i, c))
-
-
 
 end
 
