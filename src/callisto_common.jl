@@ -28,6 +28,13 @@ export check_freq_is_positive, Checker, Error, errorat,
 
 
 
+function make_frequencies(seed, num_nodes)
+     rng = Random.Xoshiro(seed)
+     f = 1 .+  rand(rng, 1:10^5, num_nodes) *  1e-9
+     return f
+end
+
+
 
 #CalOpts(graph::Topology.Graph; kw...) =  CalParams(; graph, kw...)
 
@@ -154,13 +161,15 @@ export check_freq_is_positive, Checker, Error, errorat,
 
 struct Checker end
 
-@inline check_freq_is_positive(ch::Nothing, c, errors, i, s) = return
+@inline check_freq_is_positive(ch::Nothing, c, errors, i, s) = return true
 
 function check_freq_is_positive(ch::Checker, c, errors, i, s)
     if c + errorat(errors[i], s) <= 0
-        println("Frequency at node $i has become negative: omega = ", c + errors[i](s))
+        println("Frequency at node $i has become negative: omega = ", c + errorat(errors[i],s))
         println("time s = ", s)
+        return false
     end
+    return true
 end
 
 
