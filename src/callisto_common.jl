@@ -19,13 +19,21 @@ using Random
 using JuliaTools
 using Piecewise
 
-export check_freq_is_positive, Checker, Error, errorat,
-    get_beta_constant_ugn, get_constant_ugn, get_frequencies,
-    get_latency, get_offset, initial_error,
-    local_to_realtime, make_frequencies,
-    realtime_to_local, sim_is_done
+export check_freq_is_positive, check_initial, Checker, Error, errorat, get_beta_constant_ugn,
+       get_constant_ugn, get_frequencies, get_latency, get_offset, initial_error,
+       local_to_realtime, make_frequencies, realtime_to_local, sim_is_done
 
 
+function check_initial(p, w, n, tmax)
+    avgfreq = sum(w)/n
+    if avgfreq*tmax/p < 10
+        println("Warning; fewer than 10 steps per node in simulation")
+    end
+    relmadf = sum(abs.(w .- avgfreq))/avgfreq
+    if relmadf < 1e-9
+        println("Warning: frequencies are very close together. Expect strange behavior.")
+    end
+end
 
 
 function make_frequencies(seed, num_nodes)
@@ -33,125 +41,6 @@ function make_frequencies(seed, num_nodes)
      f = 1 .+  rand(rng, 1:10^5, num_nodes) *  1e-9
      return f
 end
-
-
-
-#CalOpts(graph::Topology.Graph; kw...) =  CalParams(; graph, kw...)
-
-
-
-# Base.@kwdef mutable struct ComputedParams
-#     errors
-#     latency
-#     offset
-#     theta0
-#     c1_beta0
-#     c1_gears
-#     c1_control_delay
-# end
-
-
-#
-# Have two separate CalOpts structs. Not just one.
-# And a third one for Odes. Etc.
-# and converters between them.
-#
-#
-
-
-
-#
-#
-# function make_link(e)
-#     return Link(e, g.edges[e].src, g.edges[e].dst,
-#                 make_ugn(beta0[e], gears[e], latency[e], theta0[g.edges[e].src],
-#                     wm2[g.edges[e].src], theta0[g.edges[e].dst]),
-#                 latency[e],
-#                 gears[e],
-#                 beta0[e],
-#                 measurement_offsets[e])
-# end
-#
-# links = [make_link(e) for e = 1:g.m]
-
-# # convenience function
-# function Base.getproperty(cp::CalParams, sym::Symbol)
-#     if sym == :links
-#         return cp.model.links
-#     elseif sym == :errors
-#         if !isnothing(cp.model)
-#             return cp.model.errors
-#         end
-#         return getfield(cp, :errors)
-#     end
-#     return getfield(cp, sym)
-# end
-
-# function make_frequencies(seed, num_nodes)
-#     rng = Random.Xoshiro(seed)
-#     f = 1 .+  rand(rng, 1:10^5, num_nodes) *  1e-9
-#     return f
-# end
-
-# function get_frequencies(c::CalOpts)
-#     if c.errors == :random
-#         return make_frequencies(1, c.graph.n)
-#     end
-#     return c.errors
-# end
-
-# function get_latency(c::CalOpts)
-#     latency = [ati(c.latency, e) for e=1:c.graph.m]
-#     return latency
-# end
-
-# function get_offset(c::CalOpts)
-#     offset = [ati(c.offset, e) for e=1:c.graph.m]
-#     return offset
-# end
-
-# beta_internal(ugn, src, dst, latency, gear, t, theta) = ugn + floor(gear*theta[src](t - latency)) - floor(gear*theta[dst](t))
-
-# function get_beta_constant_ugn(c, e, t, theta)
-#     src = c.graph.edges[e].src
-#     dst = c.graph.edges[e].dst
-#     beta0 = get_offset(c)
-#     ugn = get_constant_ugn(c, beta0, errors)
-#     latency = get_latency(c)
-#     return beta_internal(ugn[e], src, dst, latency[e], 1, t, theta)
-# end
-
-
-# function mkugn_internal(beta0, gear, latency, theta0_at_src,  wm2_at_src, theta0_at_dst)
-#     return beta0 - floor(gear*(theta0_at_src - latency * wm2_at_src)) + floor(gear*theta0_at_dst)
-# end
-
-# only works for Callisto v1 style UGNs
-# which are constant over time.
-#
-# Since this may be called by other code (e.g. CallistoLinear)
-# which does not have gears, we make the gears
-# # an option.
-# function get_constant_ugn(c::CalOpts, beta0, errors; gears = 1)
-#     m = c.graph.m
-#     n = c.graph.n
-#     theta0 = [ati(c.theta0, i) for i = 1:n]
-#     gears = [ati(gears, e) for e=1:m]
-#     beta0 = [ati(beta0, e) for e=1:m]
-#     latencies = [ati(c.latency, e) for e = 1:m]
-#     wm2 = [initial_error(errors[i]) for i=1:n]
-#     ugn = [mkugn_internal(
-#         beta0[e],
-#         gears[e],
-#         latencies[e],
-#         theta0[c.graph.edges[e].src],
-#         wm2[c.graph.edges[e].src],
-#         theta0[c.graph.edges[e].dst]) for e=1:m]
-#     return ugn
-# end
-
-
-
 
 
 
