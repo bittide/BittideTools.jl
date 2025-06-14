@@ -2,7 +2,7 @@
 module BittideStateSystems
 
 using JuliaTools
-import ..CallistoCommon: get_offset
+
 
 # This is a dependency of Callisto, it does not depend on Callisto.
 

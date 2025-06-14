@@ -20,7 +20,7 @@ using JuliaTools
 using Piecewise
 
 export check_freq_is_positive, check_initial, Checker, Error, errorat, get_beta_constant_ugn,
-       get_constant_ugn, get_frequencies, get_latency, get_offset, initial_error,
+       get_constant_ugn, get_frequencies, get_latency, initial_error,
        local_to_realtime, make_frequencies, realtime_to_local, sim_is_done
 
 
