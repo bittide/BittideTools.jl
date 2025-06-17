@@ -7,7 +7,7 @@ using JuliaTools
 # This is a dependency of Callisto, it does not depend on Callisto.
 
 
-export OneEdgeOutputSystem, OutputSystem, Measurement, make_output_system, composed_controller
+export OneEdgeOutputSystem, OutputSystem, Measurement, make_output_system
 
 using Topology
 import StateSystems: StateSystems, PIStateSystem, StateSystem, compose, next
@@ -85,11 +85,6 @@ end
 
 StateSystems.next(K::OutputSystem, measurement) = sum(measurement.incoming_link_status .* (measurement.occupancies - K.local_offsets))
 
-function composed_controller(i, graph, kp, ki, poll_period, base_freq, output_system)
-    K1 = PIStateSystem(kp, ki * poll_period / base_freq)
-    K2 = output_system
-    return compose(K1, K2)
-end
 
 end
 
