@@ -64,7 +64,7 @@ OneEdgeOutputSystem(edgeid, c) = OneEdgeOutputSystem(c.graph, c.model.links[edge
 
 mutable struct Measurement
     occupancies::Vector{Float64} # indexed by port number
-    theta_at_iofc::Float64
+    theta_at_ioc::Float64
     physical_time_at_iom::Float64
     incoming_link_status::Vector{Int64}
 end
