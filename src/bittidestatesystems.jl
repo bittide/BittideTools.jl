@@ -37,14 +37,6 @@ function OneEdgeOutputSystem(graph::Topology.Graph, offset, edgeid)
     return OneEdgeOutputSystem(portnum, offset)
 end
 
-"""
-    OneEdgeOutputSystem(edgeid, c)
-
-Return a StateSystem which takes the measurement from Callisto
-and returns the occupancy-offset of the edge. May only
-be used as the controller at the destination node of the edge.
-"""
-OneEdgeOutputSystem(edgeid, c) = OneEdgeOutputSystem(c.graph, c.model.links[edgeid].offset, edgeid)
 
 
 ########################################################################
