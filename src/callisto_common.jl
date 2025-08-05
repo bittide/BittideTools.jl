@@ -19,9 +19,10 @@ using Random
 using JuliaTools
 using Piecewise
 
-export check_freq_is_positive, check_initial, Checker, Error, errorat, get_beta_constant_ugn,
-       get_constant_ugn, get_frequencies, get_latency, initial_error,
-       local_to_realtime, make_frequencies, realtime_to_local, sim_is_done
+export check_freq_is_positive, check_initial, Checker, Error, errorat,
+    frequencies_from_ppm, get_beta_constant_ugn,
+    get_constant_ugn, get_frequencies, get_latency, initial_error,
+    local_to_realtime, make_frequencies, realtime_to_local, sim_is_done
 
 
 function check_initial(p, w, n, tmax)
@@ -42,6 +43,11 @@ function make_frequencies(seed, num_nodes)
      return f
 end
 
+function frequencies_from_ppm(nominal_frequency, max_ppm_error, n)
+    ppm_errors = max_ppm_error * rand(-1000:1000, n)/1000
+    frequencies = nominal_frequency * (1 .+ ppm_errors * 10^-6)
+    return frequencies
+end
 
 
 

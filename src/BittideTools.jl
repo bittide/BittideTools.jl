@@ -28,6 +28,10 @@ using .BittideStateSystems
 include("bittidematrices.jl")
 using .BittideMatrices
 
+include("framing.jl")
+using .Framing
+
+
 
 function reexport(m)
     for a in names(m)
@@ -39,6 +43,7 @@ end
 reexport(BittideStateSystems)
 reexport(BittideMatrices)
 reexport(CallistoCommon)
+reexport(Framing)
 
 
 
