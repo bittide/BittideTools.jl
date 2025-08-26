@@ -3,9 +3,7 @@ module BittideStateSystems
 
 using JuliaTools
 
-
 # This is a dependency of Callisto, it does not depend on Callisto.
-
 
 export OneEdgeOutputSystem, OutputSystem, Measurement, make_output_system
 
@@ -21,8 +19,9 @@ mutable struct OneEdgeOutputSystem <: StateSystems.StateSystem
     OneEdgeOutputSystem(p::Int64, o::Number) = new(p, o)
 end
 
-StateSystems.next(K::OneEdgeOutputSystem, measurement) = measurement.occupancies[K.portnum] - K.offset
-
+function StateSystems.next(K::OneEdgeOutputSystem, measurement)
+    measurement.occupancies[K.portnum] - K.offset
+end
 
 """
     OneEdgeOutputSystem(graph, offset, edgeid)
@@ -37,19 +36,13 @@ function OneEdgeOutputSystem(graph::Topology.Graph, offset, edgeid)
     return OneEdgeOutputSystem(portnum, offset)
 end
 
-
-
 ########################################################################
 # controller measurement
-
 
 # IOM = instant of measurement
 # IOFC = instant of frequency change
 
 ##############################################################################
-
-
-
 
 ##############################################################################
 # We use this object to preallocate storage for the measured occupancies
@@ -58,7 +51,7 @@ mutable struct Measurement
     occupancies::Vector{Float64} # indexed by port number
     theta_at_ioc::Float64
     physical_time_at_iom::Float64
-    incoming_link_status::Vector{Int64}
+    previous_incoming_link_status::Vector{Int64}
 end
 
 """
@@ -75,8 +68,9 @@ mutable struct OutputSystem <: StateSystem
     local_offsets::Vector{Float64}
 end
 
-StateSystems.next(K::OutputSystem, measurement) = sum(measurement.incoming_link_status .* (measurement.occupancies - K.local_offsets))
-
-
+function StateSystems.next(K::OutputSystem, measurement)
+    sum(measurement.previous_incoming_link_status .*
+        (measurement.occupancies - K.local_offsets))
 end
 
+end
