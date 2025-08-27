@@ -48,7 +48,7 @@ end
 # We use this object to preallocate storage for the measured occupancies
 
 mutable struct Measurement
-    occupancies::Vector{Float64} # indexed by port number
+    occupancies::Vector{Int64} # indexed by port number
     theta_at_ioc::Float64
     physical_time_at_iom::Float64
     previous_incoming_link_status::Vector{Int64}
