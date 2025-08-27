@@ -65,7 +65,7 @@ Measurement(x) = Measurement(x, 0, 0, ones(Int64, length(x)))
 # This is a static system that converts the list
 # of buffer occupancies into the required scalar for a P or PI controller
 mutable struct OutputSystem <: StateSystem
-    local_offsets::Vector{Float64}
+    local_offsets::Vector{Int64}
 end
 
 function StateSystems.next(K::OutputSystem, measurement)
